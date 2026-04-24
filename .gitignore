@@ -1,0 +1,30 @@
+# =========================
+# DevEco Studio / HarmonyOS NEXT 专属忽略名单
+# =========================
+
+# 1. 依赖包 (绝对不能传，否则仓库爆炸)
+node_modules/
+**/node_modules/
+oh_modules/
+**/oh_modules/
+
+# 2. 编译与构建产物 (本地每次运行都会重新生成)
+build/
+**/build/
+.hvigor/
+.preview/
+**/.preview/
+.cxx/
+**/.cxx/
+
+# 3. IDE 配置文件 (避免团队成员电脑路径不同导致冲突)
+.idea/
+.vscode/
+local.properties
+*.iml
+
+# 4. 运行日志与测试缓存
+*.log
+.test/
+**/.test/
+.DS_Store
