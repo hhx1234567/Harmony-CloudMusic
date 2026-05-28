@@ -1,4 +1,5 @@
 import http from '@ohos.net.http';
+import { ApiConfig } from '../config/ApiConfig'
 
 // 1. 定义大模型返回的数据结构防腐层,只提取 UI 真正需要的数据
 export interface AIResponseFormat {
@@ -17,9 +18,9 @@ interface LLMResponse {
 }
 
 export class AIAssistant {
-  // ⚠️ 替换为你真实的 API Key
-  private readonly API_KEY = 'sk-d76f0201fccc4451aac00201adc14308';
-  // ⚠️ 如果你用的是 DeepSeek，URL 是这个。如果是别的，请查阅对应文档。
+
+  //不要把密钥直接写进业务组件内
+
   private readonly API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
   /**
@@ -39,7 +40,7 @@ export class AIAssistant {
           method: http.RequestMethod.POST,
           header: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.API_KEY}`
+            'Authorization': `Bearer ${ApiConfig.DEEPSEEK_API_KEY}`
           },
           // 核心魔法：系统提示词与强迫输出 JSON
           extraData: {
@@ -75,8 +76,27 @@ export class AIAssistant {
           let contentString = llmResult.choices[0].message.content;
           console.info("🤖 [AIAssistant] AI 提取的内容: " + contentString);
           //解析 AI 说的那段话（即 content 字符串）
-          let aiAdvice = JSON.parse(contentString) as AIResponseFormat;
-          return aiAdvice;
+          //先尝试清理大模型可能带上的 Markdown 标记（非常常见的问题）
+          let cleanString = contentString.replace(/```json/g, '').replace(/```/g, '').trim();
+
+          //专门为 JSON 解析加一层 try-catch
+          try {
+            let aiAdvice = JSON.parse(cleanString) as AIResponseFormat;
+
+            //校验一下核心字段存不存在
+            if (aiAdvice && aiAdvice.keyword) {
+              return aiAdvice;
+            } else {
+              throw new Error('JSON 格式正确，但缺少关键字段');
+            }
+          } catch (parseError) {
+            console.error('❌ [AIAssistant] AI 返回的数据无法解析为 JSON:', contentString);
+            // 返回一个友好的降级提示，而不是直接抛出网络异常
+            return {
+              keyword: "周杰伦", // 兜底搜索词
+              reason: "AI 刚才思考得太入神，格式出错了，为您随机推荐了一组经典歌曲。" // 兜底理由
+            };
+          }
 
         } else {
           console.error("❌ [AIAssistant] 数据解析失败，大模型返回格式不对");

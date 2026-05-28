@@ -17,7 +17,7 @@ const stats: mineStatType[] = [
   { label: '粉丝', count: '23382' },
   { label: '点赞', count: '5482' },
 ]
-@Component
+@ComponentV2
 export  struct Mine {
   build() {
     Column() {

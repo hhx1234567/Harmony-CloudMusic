@@ -4,3 +4,5 @@
 /build
 /.cxx
 /.test
+# 忽略包含敏感信息的本地配置文件
+entry/src/main/ets/config/ApiConfig.ets

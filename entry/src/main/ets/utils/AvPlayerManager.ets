@@ -17,31 +17,33 @@ class AvPlayerManager {
       this.player = await media.createAVPlayer()
     }
     //监听状态变化
-    this.player.on('stateChange', (state) => {
-      if (state === 'initialized') {
-        this.player?.prepare()
+    this.player.on('stateChange', (state: string) => {
+      switch (state) {
+        case 'initialized':
+          this.player?.prepare();
+          break;
+        case 'prepared':
+          this.player?.play();
+          break;
+        case 'playing':
+          this.currentSong.isPlay = true;
+          sessionManager.setAVPlayBackState();
+          break;
+        case 'paused':
+          this.currentSong.isPlay = false;
+          sessionManager.setAVPlayBackState();
+          break;
+        case 'completed':
+          this.nextPlay(true); //自动下一首
+          break;
+        case 'released':
+          this.currentSong.reset();
+          break;
+        default:
+          console.info(`[AvPlayerManager] 未处理的播放器状态: ${state}`);
+          break;
       }
-      else if (state === 'prepared') {
-        this.player?.play()
-        //this.currentSong.isPlay = true
-      }
-      else if (state === 'playing') {
-        // 【核心修改 1】：确立唯一真相！只有底层真的出声了，才去改状态和通知锁屏！
-        this.currentSong.isPlay = true
-        sessionManager.setAVPlayBackState()
-      }
-      else if (state === 'paused') {
-        // 【核心修改 2】：只有底层真的暂停了，才去改状态和通知锁屏！
-        this.currentSong.isPlay = false
-        sessionManager.setAVPlayBackState()
-      }
-      else if (state === 'completed') {
-        this.nextPlay(true) //自动下一首
-      }
-      else if (state === 'released') {
-        this.currentSong.reset()
-      }
-    })
+    });
     //监听时间变化
     //总时长
     this.player.on('durationUpdate', (duration) => {
@@ -54,15 +56,9 @@ class AvPlayerManager {
       //sessionManager.setAVPlayBackState()
     })
   }
-  //设置播放器
-  //singPlay (song: SongItemType) {
-  //  this.player!.url = song.url
-  //  this.currentSong.img = song.img
-  //}
   singPlay (song: SongItemType){
     //申请长时任务
     sessionManager.startBackgroundTask()
-    //sessionManager.setAVPlayBackState()       此时还没准备好播放，不能提前骗锁屏
 
     //是否在列表 -> some 检查数组里面的song数据与传过来的item数据是否满足条件 -> 只要有一个满足 some 返回 true
     const inList = this.currentSong.playList.some(item => item.id === song.id)
@@ -101,7 +97,12 @@ class AvPlayerManager {
     this.currentSong.name = this.currentSong.playList[this.currentSong.playIndex].name
     this.currentSong.author = this.currentSong.playList[this.currentSong.playIndex].author
     this.currentSong.url = this.currentSong.playList[this.currentSong.playIndex].url
-    this.player!.url = this.currentSong.url
+    if (!this.player) {
+      console.error('[AvPlayerManager] ⚠️ 播放器尚未初始化或初始化失败，无法播放！');
+      // 可选：这里可以触发一次重新初始化 init() 的逻辑
+      return
+    }
+    this.player.url = this.currentSong.url
   }
 
   //跳转进度 seek
@@ -184,10 +185,22 @@ class AvPlayerManager {
   }
 
   //释放播放器和播放数据
-  async  release () {
-    await this.player?.release()
-  }
+  async release() {
+    if (this.player) {
+      // 1. 挨个解绑所有事件监听器
+      this.player.off('stateChange')
+      this.player.off('durationUpdate')
+      this.player.off('timeUpdate')
 
+      // 2. 释放底层资源
+      await this.player.release()
+
+      // 3. 彻底切断 JavaScript 层的引用
+      this.player = null
+      console.info('[AvPlayerManager] 🗑️ 播放器资源已彻底释放并置空')
+    }
+  }
+  //恢复播放
   resumePlay() {
     if (this.player && this.currentSong.isPlay === false) {
       this.player?.play()

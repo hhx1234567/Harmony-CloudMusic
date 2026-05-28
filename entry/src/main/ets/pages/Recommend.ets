@@ -11,8 +11,8 @@ interface recommendListType {
   title: string
   count: string
 }
-@Component
-export  struct Recommend {
+@ComponentV2
+export struct Recommend {
 
   //轮播图数据
   swiperList: string[] = [

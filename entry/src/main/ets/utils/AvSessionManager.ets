@@ -12,6 +12,7 @@ class AvSessionManager {
   //拿到当前播放歌曲的数据
   playState: GlobalMusic = AppStorageV2.connect(GlobalMusic, 'SONG_KEY', () => new GlobalMusic())!
   private context: Context | null = null
+  private isTaskRunning: boolean = false
 
   //init只在APP启动时调用一次
   async  init(content: Context) {
@@ -24,6 +25,11 @@ class AvSessionManager {
 
   //申请长时任务
   async  startBackgroundTask() {
+    //核心防御：如果已经办过通行证了，直接退回
+    if (this.isTaskRunning) {
+      console.info('[AvSessionManager] 🛡️ 后台长时任务已在运行，拦截重复申请')
+      return
+    }
     if (!this.context) return
     let wantAgentInfo: wantAgent.WantAgentInfo = {
       // 点击通知后，将要执行的动作列表
@@ -58,6 +64,8 @@ class AvSessionManager {
         console.error('❌❌❌ [BackgroundTask] 失败：', JSON.stringify(err))
       }
     })
+    this.isTaskRunning = true
+    console.info('[AvSessionManager] ✅ 后台长时任务申请成功')
   }
 
   //设置元数据，把静态情报推给锁屏控制中心
@@ -113,10 +121,25 @@ class AvSessionManager {
     })
     this.session?.activate()
   }
-
+  //注销长时任务并解锁
+  async stopBackgroundTask() {
+    if (!this.isTaskRunning || !this.context) return
+    try {
+      await backgroundTaskManager.stopBackgroundRunning(this.context)
+      this.isTaskRunning = false
+      console.info('[AvSessionManager] 🛑 后台长时任务已安全注销，状态已解锁')
+    } catch (err) {
+      console.error('❌❌❌ [AvSessionManager] 注销后台任务失败：', JSON.stringify(err))
+    }
+  }
   //注销会话
   async  destroy () {
+    //停止后台长时任务（同时会自动把 isTaskRunning 置为 false）
+    await this.stopBackgroundTask()
+    // 2. 销毁控制中心的卡片会话
     await this.session?.destroy()
+    this.session = null
+    console.info('[AvSessionManager] 🗑️ 会话与底层资源已彻底清理')
   }
 }
 

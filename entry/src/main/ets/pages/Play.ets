@@ -15,121 +15,6 @@ struct Play {
   @Local panelOpacity: number = 0
   pathStack : NavPathStack = new NavPathStack();
 
-  songs: SongItemType[] = [
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/0.jpg',
-      name: '直到世界的尽头',
-      author: 'WANDS',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/0.m4a',
-      id: '0000'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/1.jpg',
-      name: '画',
-      author: '赵磊',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/1.mp3',
-      id: '0001'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/2.jpg',
-      name: 'Sweet Dreams',
-      author: 'TPaul Sax / Eurythmics',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/2.mp3',
-      id: '0002'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/3.jpg',
-      name: '奢香夫人',
-      author: '凤凰传奇',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/3.m4a',
-      id: '0003'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/4.jpg',
-      name: '空心',
-      author: '光泽',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/4.mp3',
-      id: '0004'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/5.jpg',
-      name: '反转地球',
-      author: '潘玮柏',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/5.mp3',
-      id: '0005'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/6.jpg',
-      name: 'No.9',
-      author: 'T-ara',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/6.m4a',
-      id: '0006'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/7.jpg',
-      name: '孤独',
-      author: 'G.E.M.邓紫棋',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/7.m4a',
-      id: '0007'
-    },
-
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/8.jpg',
-      name: 'Lose Control',
-      author: 'Hedley',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/8.m4a',
-      id: '0008'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/9.jpg',
-      name: '倩女幽魂',
-      author: '张国荣',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/9.m4a',
-      id: '0009'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/10.jpg',
-      name: '北京北京',
-      author: '汪峰',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/10.m4a',
-      id: '0010'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/11.jpg',
-      name: '苦笑',
-      author: '汪苏泷',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/11.mp3',
-      id: '0011'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/12.jpg',
-      name: '一生所爱',
-      author: '卢冠廷 / 莫文蔚',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/12.m4a',
-      id: '0012'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/13.jpg',
-      name: '月半小夜曲',
-      author: '李克勤',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/13.mp3',
-      id: '0013'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/14.jpg',
-      name: 'Rolling in the Deep',
-      author: 'Adele',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/14.m4a',
-      id: '0014'
-    },
-    {
-      img: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/15.jpg',
-      name: '海阔天空',
-      author: 'Beyond',
-      url: 'http://yjy-teach-oss.oss-cn-beijing.aliyuncs.com/HeimaCloudMusic/15.m4a',
-      id: '0015'
-    }
-  ]
   // 当前播放的歌曲
   @Local
   playState: GlobalMusic = AppStorageV2.connect(GlobalMusic, 'SONG_KEY', () => new GlobalMusic())!
@@ -176,9 +61,15 @@ struct Play {
           Image(this.playState.img)
             .width('100%')
             .height('100%')
-            .blur(1000)
+            .objectFit(ImageFit.Cover)
+            .blur(40)
             .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-
+          //(新增的遮罩层)紧挨着写在 Image 后面，这样它就会盖在背景图上面，但垫在所有的 UI 控件下面
+          Row()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('rgba(0, 0, 0, 0.4)') // 40%透明度的黑膜
+            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
           // 内容
           Column() {
             // //   播放界面
@@ -220,48 +111,26 @@ struct Play {
                   })
               }
               // 歌曲信息
-              Stack() {
-                // 第一个
-                Column({ space: 8 }) {
-                  Text(this.playState.name)
-                    .fontSize(28)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor('#4bb0c4')
-                  Text(this.playState.author)
-                    .fontSize(18)
-                    .fontColor('#4bb0c4')
-                }
-                .layoutWeight(1)
-                .justifyContent(FlexAlign.Center)
-                .zIndex(1)
-                // 第二个
-                Column({ space: 8 }) {
-                  Text(this.playState.name)
-                    .fontSize(28)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor('#ec5c87')
-                  Text(this.playState.author)
-                    .fontSize(18)
-                    .fontColor('#ec5c87')
-                }
-                .layoutWeight(1)
-                .justifyContent(FlexAlign.Center)
-                .zIndex(2)
-                // 第三个
-                Column({ space: 8 }) {
-                  Text(this.playState.name)
-                    .fontSize(28)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(Color.White)
-                  Text(this.playState.author)
-                    .fontSize(18)
-                    .fontColor(Color.White)
-                }
-                .layoutWeight(1)
-                .justifyContent(FlexAlign.Center)
-                .zIndex(3)
+              // 🟢 歌曲信息（优化版：单层渲染 + 阴影霓虹效果）
+              Column({ space: 8 }) {
+                Text(this.playState.name)
+                  .fontSize(28)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(Color.White)
+                  // 利用 textShadow 还原你原来三层叠加想要的那种“发光/霓虹”效果
+                  .textShadow({ radius: 8, color: '#ec5c87', offsetX: 0, offsetY: 0 })
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                Text(this.playState.author)
+                  .fontSize(18)
+                  .fontColor('#B3B3B3') // 浅灰色增加层次感
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
               }
               .layoutWeight(1)
+              .justifyContent(FlexAlign.Center)
+
               // 操作
               Row() {
                 Badge({ value: '99+', style: { badgeSize: 12, badgeColor: '#45CCCCCC' } }) {

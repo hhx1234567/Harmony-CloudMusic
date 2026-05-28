@@ -4,7 +4,7 @@ export function StartBuilder() {
   Start();
 }
 
-@Component
+@ComponentV2
 struct Start {
   // 控制跳转的对象
   pathStack: NavPathStack = new NavPathStack();
