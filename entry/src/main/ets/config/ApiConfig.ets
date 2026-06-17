@@ -1,5 +1,5 @@
 export class ApiConfig {
-    static readonly DEEPSEEK_API_KEY: string = 'sk-d76f0201fccc4451aac00201adc14308'
+    static readonly DEEPSEEK_API_KEY: string = 'sk-99014fb73db641e88d32d54820b4dd60'
     //环境开关，上线时改为true
     static readonly IS_PROD: boolean = false
     //定义生产环境域名（必须是HTTPS）

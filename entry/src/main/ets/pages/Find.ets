@@ -1,12 +1,8 @@
 import { SongItemType } from "../models/music"
 import { AppStorageV2 } from '@kit.ArkUI';
-import { playerManager } from "../utils/AvPlayerManager";
 import { GlobalMusic } from "../models/globalMusic";
-import http from '@ohos.net.http';
 import { FindPageCache } from "../models/cache";
-import { aiAssistant } from '../utils/AIAssistant';
 import { getRandomMusic, getSongRealUrl, searchMusic } from '../services/MusicService';
-import { ApiConfig } from '../config/ApiConfig'
 import { FindViewModel } from '../viewmodels/FindViewModel'
 
 @ComponentV2

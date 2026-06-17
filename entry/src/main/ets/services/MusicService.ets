@@ -53,7 +53,7 @@ export async function searchMusic(keyword: string): Promise<SongItemType[]> {
             id: rawItem.id.toString(),
             name: rawItem.name,
             author: (rawItem.ar && rawItem.ar.length > 0) ? rawItem.ar[0].name : '未知歌手',
-            img: rawItem.al.picUrl.replace('http://', 'https://'),
+            img: (rawItem.al?.picUrl || '').replace('http://', 'https://'),   //防止如果未返回专辑封面APP闪退问题
             url: ''
           } as SongItemType
         })

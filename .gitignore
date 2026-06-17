@@ -28,3 +28,7 @@ local.properties
 .test/
 **/.test/
 .DS_Store
+
+entry/src/main/ets/config/ApiConfig.ets
+
+.claude/
