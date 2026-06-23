@@ -2,6 +2,7 @@ import { GlobalMusic } from "../models/globalMusic"
 import { SongItemType } from "../models/music"
 import { AppStorageV2 } from "@kit.ArkUI"
 import { playerManager } from "../utils/AvPlayerManager"
+import { PlayViewModel } from "../viewmodels/PlayViewModel"
 
 // 跳转页面入口函数
 @Builder
@@ -11,8 +12,7 @@ export function PlayBuilder() {
 
 @ComponentV2
 struct Play {
-  @Local panelHeight: string = '0%'
-  @Local panelOpacity: number = 0
+  @Local vm: PlayViewModel = new PlayViewModel()
   pathStack : NavPathStack = new NavPathStack();
 
   // 当前播放的歌曲
@@ -34,22 +34,6 @@ struct Play {
         //回退到前一页,出栈操作
         this.pathStack.pop()
       })
-
-  }
-
-  number2time(number: number) {
-    // 毫秒 → 秒 → 分+秒; 先判断是否大于1分钟
-    if (number > 60 * 1000) {
-      const s = Math.floor(number/1000%60)
-      const m = Math.floor(number/1000/60)
-      const second = s.toString().padStart(2, '0')
-      const minute = m.toString().padStart(2, '0')
-      return minute + ':' + second
-    } else {
-      const s = Math.floor(number/1000%60)
-      const second = s.toString().padStart(2, '0')
-      return '00:' + second
-    }
   }
 
   build() {
@@ -163,7 +147,7 @@ struct Play {
               Column() {
                 // 进度条
                 Row({ space: 4 }) {
-                  Text(this.number2time(this.playState.time))
+                  Text(this.vm.number2time(this.playState.time))
                     .fontSize(12)
                     .fontColor(Color.White)
                   Slider({
@@ -177,9 +161,9 @@ struct Play {
                     .trackColor('#ccc5c5c5')
                     .trackThickness(2)
                     .onChange((value) => {
-                      playerManager.seekPlay(value)
+                      this.vm.handleSeek(value)
                     })
-                  Text(this.number2time(this.playState.duration))
+                  Text(this.vm.number2time(this.playState.duration))
                     .fontSize(12)
                     .fontColor(Color.White)
                 }
@@ -236,8 +220,7 @@ struct Play {
                     .fillColor(Color.White)
                     .width(30)
                     .onClick(() => {
-                      this.panelHeight = '50%'
-                      this.panelOpacity = 1
+                      this.vm.showListPanel()
                     })
                 }
                 .width('100%')
@@ -265,8 +248,7 @@ struct Play {
           .width('100%')
           .layoutWeight(1)
           .onClick(() => {
-            this.panelHeight = '0%'
-            this.panelOpacity = 0
+            this.vm.hideListPanel()
           })
 
           Column() {
@@ -293,8 +275,7 @@ struct Play {
                 .height(24)
                 .margin({ right: 16 })
                 .onClick(() => {
-                  this.panelHeight = '0%'
-                  this.panelOpacity = 0
+                  this.vm.hideListPanel()
                 })
             }
             .width('100%')
@@ -366,13 +347,13 @@ struct Play {
           }
           .height(400)
         }
-        .height(this.panelHeight)
+        .height(this.vm.panelHeight)
         // .height('100%')
         .animation({
           duration: 300
         })
         .backgroundColor('#ff353333')
-        .opacity(this.panelOpacity)
+        .opacity(this.vm.panelOpacity)
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
 
 
