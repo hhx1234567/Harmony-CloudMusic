@@ -14,7 +14,9 @@ export class FindViewModel {
   @Trace aiKeyword: string = '';
   @Trace aiReason: string = '';
   //待处理歌的ID
-  @Trace pendingSongId: string = ''
+  //@Trace pendingSongId: string = ''
+
+  private playIntentSequence: number = 0
 
   // 2. 将加载歌曲的逻辑搬过来
   async loadRandomSongs(songAuthor: string[], cacheData: FindPageCache) {
@@ -40,18 +42,51 @@ export class FindViewModel {
     this.aiReason = result.reason;
     this.isAILoading = false;
   }
-  async playSong(item: SongItemType, pathStack: NavPathStack) {
-    this.pendingSongId = item.id
-    const currentIntentId = item.id
-    pathStack.pushPathByName('Play', null, false)
-    let realUrl = await getSongRealUrl(item.id)
-    if (this.pendingSongId !== currentIntentId) {
-      console.info(`[Race Condition] 丢弃过期的播放请求: ${item.name}`)
-    }
-    if (realUrl) {
-      item.url = realUrl
-      playerManager.singPlay(item)
-    }
-  }
 
+  async playSong(item: SongItemType, pathStack: NavPathStack): Promise<void> {
+    // 每次点击都生成一个新的意图序号。
+    const intentId = ++this.playIntentSequence
+
+    // 创建快照，避免直接修改发现页缓存里的原对象。
+    const targetSong: SongItemType = {
+      id: item.id,
+      name: item.name,
+      author: item.author,
+      img: item.img,
+      url: item.url
+    }
+
+    console.info(
+      `[PlayIntent][${intentId}] 开始解析歌曲URL：` + `${targetSong.name} (${targetSong.id})`
+    )
+
+    const realUrl = await getSongRealUrl(targetSong.id)
+
+    // URL返回时检查：该请求是否仍然是用户的最新意图。
+    if (intentId !== this.playIntentSequence) {
+      console.info(
+        `[PlayIntent][${intentId}] 已过期，当前最新意图为` + `${this.playIntentSequence}，丢弃歌曲：${targetSong.name}`
+      )
+      return
+    }
+
+    if (!realUrl) {
+      console.error(
+        `[PlayIntent][${intentId}] 获取播放地址失败：` + `${targetSong.name}`
+      )
+      return
+    }
+
+    targetSong.url = realUrl
+
+    console.info(
+      `[PlayIntent][${intentId}] URL有效，交给播放器：` + `${targetSong.name}`
+    )
+
+    playerManager.singPlay(targetSong)
+
+    // 只让最终有效的意图进入播放页。
+    pathStack.pushPathByName('Play', null, false)
+
+  }
 }
