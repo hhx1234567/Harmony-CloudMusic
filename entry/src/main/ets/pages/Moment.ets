@@ -11,6 +11,16 @@ export struct Moment {
 
   @Local momentList: momentListType[] = DEFAULT_momentList
 
+  private playMomentSong(song: SongItemType): void {
+    playerManager.singPlay(song).then((applied: boolean) => {
+      if (!applied) {
+        console.info('[Moment] 播放请求未应用')
+      }
+    }).catch((err: Error) => {
+      console.error('[Moment] 播放请求异常：' + JSON.stringify(err))
+    })
+  }
+
   build() {
     Column() {
       // 顶部标题
@@ -91,7 +101,7 @@ export struct Moment {
               .borderRadius(10)
               .onClick(() => {
                 // 点击播放对应歌曲
-                playerManager.singPlay(item.song)
+                this.playMomentSong(item.song)
               })
 
               // 评论/点赞

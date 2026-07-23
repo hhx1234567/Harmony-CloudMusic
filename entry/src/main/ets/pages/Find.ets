@@ -15,6 +15,11 @@ export struct Find {
   @Local cacheData: FindPageCache = AppStorageV2.connect(FindPageCache, 'FIND_CACHE_KEY', () => new FindPageCache())!
   @Local vm: FindViewModel = new FindViewModel()
 
+  private runTask(task: Promise<void>, source: string): void {
+    task.catch((err: Error) => {
+      console.error(`[Find] ${source}异常：` + JSON.stringify(err))
+    })
+  }
 
   aboutToAppear(): void {
     //拦截器：如果歌曲列表有歌曲了，直接return，不发送请求
@@ -24,7 +29,7 @@ export struct Find {
       return
     }
     //页面即将渲染时调用
-    this.vm.loadRandomSongs(this.songAuthor, this.cacheData)
+    this.runTask(this.vm.loadRandomSongs(this.songAuthor, this.cacheData), '加载推荐歌曲')
   }
   // 获取音频真实链接
   async getSongUrl(id: string): Promise<string> {
@@ -62,7 +67,7 @@ export struct Find {
           .fontColor(Color.White)
           .enabled(!this.vm.isAILoading && this.vm.userInput.length > 0)
           .onClick(() => {
-            this.vm.askAI()
+            this.runTask(this.vm.askAI(), 'AI推荐')
           })
         if (this.vm.aiKeyword) {
           Column({ space: 10 }) {
@@ -135,7 +140,7 @@ export struct Find {
                 // .backgroundColor(Color.Pink)
                 .margin({ bottom: 10 })
                 .onClick(() => {
-                  this.vm.playSong(item, this.pathStack)
+                  this.runTask(this.vm.playSong(item, this.pathStack), '播放歌曲')
                 })
               }
             })
@@ -144,7 +149,7 @@ export struct Find {
         }
         .onRefreshing(() => {
           console.info('用户触发下拉刷新，开始重新请求随机歌曲')
-          this.vm.loadRandomSongs(this.songAuthor, this.cacheData)
+          this.runTask(this.vm.loadRandomSongs(this.songAuthor, this.cacheData), '刷新推荐歌曲')
         })
       }
     }

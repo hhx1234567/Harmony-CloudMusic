@@ -20,6 +20,40 @@ struct Play {
   playState: GlobalMusic = AppStorageV2.connect(GlobalMusic, 'SONG_KEY', () => new GlobalMusic())!
   //playState:SongItemType = this.songs[0]
 
+  private handlePlaybackAction(action: Promise<boolean>, source: string): void {
+    action.then((applied: boolean) => {
+      if (!applied) {
+        console.info(`[Play] ${source}未应用`)
+      }
+    }).catch((err: Error) => {
+      console.error(`[Play] ${source}异常：` + JSON.stringify(err))
+    })
+  }
+
+  private playCurrentSong(): void {
+    if (this.playState.isPlay) {
+      playerManager.paused()
+      return
+    }
+
+    const index = this.playState.playIndex
+    if (this.playState.playList.length === 0 || index < 0 || index >= this.playState.playList.length) {
+      console.info('[Play] 播放列表为空或当前索引无效，忽略播放按钮')
+      return
+    }
+    this.handlePlaybackAction(playerManager.singPlay(this.playState.playList[index]), '播放当前歌曲')
+  }
+
+  private removePlayListSong(index: number): void {
+    playerManager.removeSong(index).then((removed: boolean) => {
+      if (removed && this.playState.playList.length === 0) {
+        this.pathStack.pop()
+      }
+    }).catch((err: Error) => {
+      console.error('[Play] 删除播放列表歌曲异常：' + JSON.stringify(err))
+    })
+  }
+
 
   @Builder
   deleteButton(index: number) {
@@ -30,9 +64,7 @@ struct Play {
       .height('100%')
       .type(ButtonType.Normal)
       .onClick(() => {
-        playerManager.removeSong(index)
-        //回退到前一页,出栈操作
-        this.pathStack.pop()
+        this.removePlayListSong(index)
       })
   }
 
@@ -198,7 +230,7 @@ struct Play {
                     .fillColor(Color.White)
                     .width(30)
                     .onClick(() => {
-                      playerManager.prevPlay()
+                      this.handlePlaybackAction(playerManager.prevPlay(), '上一首')
                     })
 
                   // 播放按钮
@@ -206,14 +238,14 @@ struct Play {
                     .fillColor(Color.White)
                     .width(50)
                     .onClick(() => {
-                      this.playState.isPlay ? playerManager.paused() : playerManager.singPlay(this.playState.playList[this.playState.playIndex])
+                      this.playCurrentSong()
                     })
                   // 下一首
                   Image($r('app.media.ic_next'))
                     .fillColor(Color.White)
                     .width(30)
                     .onClick(() => {
-                      playerManager.nextPlay()
+                      this.handlePlaybackAction(playerManager.nextPlay(), '下一首')
                     })
                   // 播放列表
                   Image($r('app.media.ic_song_list'))
@@ -328,7 +360,7 @@ struct Play {
                   }
                   .alignItems(VerticalAlign.Center)
                   .onClick(() => {
-                    playerManager.singPlay(item)
+                    this.handlePlaybackAction(playerManager.singPlay(item), '播放列表切歌')
                   })
                 }
                 .swipeAction({
