@@ -5,8 +5,8 @@ import { SongItemType } from '../main/ets/models/music';
 export default function AvPlayerManagerTest() {
   describe('AvPlayerManagerTest', () => {
 
-    // 无效URL必须在接触播放器和播放列表前被拒绝。
-    it('singPlay_should_reject_empty_url', 0, async () => {
+    // 这个用例不依赖真机播放器：播放器未初始化时必须安全拒绝，也不能污染播放列表。
+    it('singPlay_should_reject_when_player_is_unavailable', 0, async () => {
       let testSong: SongItemType = {
         id: 'test_999',
         name: '测试之歌',

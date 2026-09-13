@@ -11,6 +11,8 @@ oh_modules/
 # 2. 编译与构建产物 (本地每次运行都会重新生成)
 build/
 **/build/
+output/
+**/output/
 .hvigor/
 .preview/
 **/.preview/
@@ -29,6 +31,10 @@ local.properties
 **/.test/
 .DS_Store
 
-entry/src/main/ets/config/ApiConfig.ets
+# 个人求职资料不进入公开代码仓库
+docs/resume-draft.md
+
+# 本地误生成的命令输出文件
+/how --stat
 
 .claude/

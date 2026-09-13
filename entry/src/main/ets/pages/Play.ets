@@ -3,6 +3,8 @@ import { SongItemType } from "../models/music"
 import { AppStorageV2 } from "@kit.ArkUI"
 import { playerManager } from "../utils/AvPlayerManager"
 import { PlayViewModel } from "../viewmodels/PlayViewModel"
+import { FavoriteMusic } from '../models/favoriteMusic'
+import { FavoriteToggleResult } from '../utils/FavoriteSongsPolicy'
 
 // 跳转页面入口函数
 @Builder
@@ -18,9 +20,16 @@ struct Play {
   // 当前播放的歌曲
   @Local
   playState: GlobalMusic = AppStorageV2.connect(GlobalMusic, 'SONG_KEY', () => new GlobalMusic())!
+  @Local
+  favoriteState: FavoriteMusic = AppStorageV2.connect(
+    FavoriteMusic,
+    'FAVORITE_SONGS_KEY',
+    () => new FavoriteMusic()
+  )!
   //playState:SongItemType = this.songs[0]
 
   private handlePlaybackAction(action: Promise<boolean>, source: string): void {
+    // 播放按钮、上下首和列表点击都复用这个方法，保证每个 Promise 都有结果和异常处理。
     action.then((applied: boolean) => {
       if (!applied) {
         console.info(`[Play] ${source}未应用`)
@@ -31,11 +40,13 @@ struct Play {
   }
 
   private playCurrentSong(): void {
+    // 已在播放时按钮语义是“暂停”；未播放时才需要从列表取当前歌曲。
     if (this.playState.isPlay) {
       playerManager.paused()
       return
     }
 
+    // 列表可能刚被清空或索引正处于切歌过渡期，取值前必须检查上下界。
     const index = this.playState.playIndex
     if (this.playState.playList.length === 0 || index < 0 || index >= this.playState.playList.length) {
       console.info('[Play] 播放列表为空或当前索引无效，忽略播放按钮')
@@ -44,7 +55,63 @@ struct Play {
     this.handlePlaybackAction(playerManager.singPlay(this.playState.playList[index]), '播放当前歌曲')
   }
 
+  private changePlayMode(): void {
+    const previousMode = this.playState.playMode
+    const nextMode = this.vm.getNextPlayMode(previousMode)
+
+    // 先更新UI，点击后图标立即变化。
+    this.playState.playMode = nextMode
+
+    // 再保存到Preferences。
+    this.vm.savePlayMode(nextMode)
+      .then(() => {
+        console.info(
+          `[Play] 播放模式已切换：${nextMode}`
+        )
+      })
+      .catch((err: Error) => {
+        // 保存失败时恢复原来的模式。
+        this.playState.playMode = previousMode
+
+        console.error(
+          '[Play] 保存播放模式失败：' +
+          JSON.stringify(err)
+        )
+      })
+  }
+
+  private getCurrentSong(): SongItemType | null {
+    const index = this.playState.playIndex
+    if (this.playState.playList.length === 0 || index < 0 || index >= this.playState.playList.length) {
+      return null
+    }
+    const song = this.playState.playList[index]
+    return {
+      id: song.id,
+      name: song.name,
+      author: song.author,
+      img: song.img,
+      url: song.url
+    }
+  }
+
+  private toggleCurrentFavorite(): void {
+    const song = this.getCurrentSong()
+    if (!song) {
+      this.vm.favoriteErrorMessage = '当前没有可收藏的歌曲'
+      return
+    }
+
+    this.vm.toggleFavorite(song, this.favoriteState.songs).then((result: FavoriteToggleResult) => {
+      this.favoriteState.songs = result.songs
+      console.info(`[Play] ${result.isFavorite ? '已收藏' : '已取消收藏'}：${song.name}`)
+    }).catch((err: Error) => {
+      console.error('[Play] 收藏状态保存失败：' + JSON.stringify(err))
+    })
+  }
+
   private removePlayListSong(index: number): void {
+    // 等播放器完成删除/切歌后再决定是否退出页面，避免先退出而后台仍在操作旧歌曲。
     playerManager.removeSong(index).then((removed: boolean) => {
       if (removed && this.playState.playList.length === 0) {
         this.pathStack.pop()
@@ -148,33 +215,27 @@ struct Play {
               .justifyContent(FlexAlign.Center)
 
               // 操作
-              Row() {
-                Badge({ value: '99+', style: { badgeSize: 12, badgeColor: '#45CCCCCC' } }) {
-                  Image($r("app.media.ic_like"))
-                    .fillColor(Color.White)
-                    .width(24)
-                }
-
-                Badge({ value: '10W', style: { badgeSize: 12, badgeColor: '#45cccccc' } }) {
-                  Image($r("app.media.ic_comment_o"))
-                    .fillColor(Color.White)
-                    .width(18)
-                }
-
-                Badge({ value: 'hot', style: { badgeSize: 12, badgeColor: '#a8ff3131' } }) {
-                  Image($r("app.media.ic_bells_o"))
-                    .fillColor(Color.White)
-                    .width(24)
-                }
-
-                Badge({ value: 'vip', style: { badgeSize: 12, badgeColor: '#b7efd371' } }) {
-                  Image($r("app.media.ic_download_o"))
-                    .fillColor(Color.White)
-                    .width(24)
-                }
+              Row({ space: 8 }) {
+                Image($r('app.media.ic_like'))
+                  .fillColor(this.vm.isFavorite(this.favoriteState.songs, this.playState.id) ? '#ec5c87' : Color.White)
+                  .width(24)
+                Text(this.vm.isFavorite(this.favoriteState.songs, this.playState.id) ? '已收藏' : '收藏')
+                  .fontSize(14)
+                  .fontColor(this.vm.isFavorite(this.favoriteState.songs, this.playState.id) ? '#ec5c87' : Color.White)
               }
-              .width('100%')
-              .justifyContent(FlexAlign.SpaceAround)
+              .padding({ left: 18, right: 18, top: 10, bottom: 10 })
+              .backgroundColor('#33000000')
+              .borderRadius(22)
+              .enabled(this.playState.id.length > 0)
+              .onClick(() => {
+                this.toggleCurrentFavorite()
+              })
+              if (this.vm.favoriteErrorMessage) {
+                Text(this.vm.favoriteErrorMessage)
+                  .fontSize(13)
+                  .fontColor('#FFB4AB')
+                  .margin({ top: 8 })
+              }
               // 播放
               Column() {
                 // 进度条
@@ -208,21 +269,21 @@ struct Play {
                       .fillColor(Color.White)
                       .width(30)
                       .onClick(() => {
-                        this.playState.playMode = 'random'
+                        this.changePlayMode()
                       })
                   } else if (this.playState.playMode === 'random') {
                     Image($r('app.media.ic_random'))
                       .fillColor(Color.White)
                       .width(30)
                       .onClick(() => {
-                        this.playState.playMode = 'repeat'
+                        this.changePlayMode()
                       })
-                  } else if (this.playState.playMode === 'repeat') {
+                  } else {
                     Image($r('app.media.ic_repeat'))
                       .fillColor(Color.White)
                       .width(30)
                       .onClick(() => {
-                        this.playState.playMode = 'auto'
+                        this.changePlayMode()
                       })
                   }
 

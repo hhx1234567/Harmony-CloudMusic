@@ -1,9 +1,9 @@
 {
   "name": "entry",
   "version": "1.0.0",
-  "description": "Please describe the basic information.",
+  "description": "MyMusic HarmonyOS application entry module.",
   "main": "",
-  "author": "",
+  "author": "黄泓鑫",
   "license": "",
   "dependencies": {}
 }

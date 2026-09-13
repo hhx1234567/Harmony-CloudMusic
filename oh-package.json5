@@ -1,6 +1,6 @@
 {
   "modelVersion": "6.0.2",
-  "description": "Please describe the basic information.",
+  "description": "HarmonyOS music client built with ArkTS, ArkUI, AVPlayer and AVSession.",
   "dependencies": {
   },
   "devDependencies": {

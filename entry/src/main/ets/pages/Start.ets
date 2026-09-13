@@ -8,11 +8,28 @@ export function StartBuilder() {
 struct Start {
   // 控制跳转的对象
   pathStack: NavPathStack = new NavPathStack();
+  private redirectTimerId: number = -1
+
+  private enterHome(): void {
+    if (this.redirectTimerId !== -1) {
+      clearTimeout(this.redirectTimerId)
+      this.redirectTimerId = -1
+    }
+    this.pathStack.replacePathByName('Layout', null, false)
+  }
+
   //过三秒自动跳转到layout，start页面打开计时三秒
   aboutToAppear(): void {   //生命周期
-    setTimeout(() => {
-      this.pathStack.replacePathByName("Layout", null, false)
-    },3000)
+    this.redirectTimerId = setTimeout(() => {
+      this.enterHome()
+    }, 3000)
+  }
+
+  aboutToDisappear(): void {
+    if (this.redirectTimerId !== -1) {
+      clearTimeout(this.redirectTimerId)
+      this.redirectTimerId = -1
+    }
   }
 
   build() {
@@ -29,7 +46,7 @@ struct Start {
           .margin(15)
           .onClick(() => {
             //用replacePathByName不让返回广告页面，用pushPathByName可以返回页面
-            this.pathStack.replacePathByName("Layout", null, false)
+            this.enterHome()
           })
       }
     }

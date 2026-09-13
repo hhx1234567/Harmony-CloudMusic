@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "HarmonyOS 音乐播放器客户端"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "MyMusic 主界面与音频播放能力"
     },
     {
       "name": "EntryAbility_label",
-      "value": "Music"
+      "value": "MyMusic"
     }
   ]
 }

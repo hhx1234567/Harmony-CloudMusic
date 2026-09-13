@@ -12,6 +12,7 @@ export struct Moment {
   @Local momentList: momentListType[] = DEFAULT_momentList
 
   private playMomentSong(song: SongItemType): void {
+    // 动态页不经过 FindViewModel，所以直接进入播放器自己的操作序列，并处理 boolean 结果。
     playerManager.singPlay(song).then((applied: boolean) => {
       if (!applied) {
         console.info('[Moment] 播放请求未应用')

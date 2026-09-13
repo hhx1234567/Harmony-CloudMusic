@@ -1,6 +1,7 @@
 import http from '@ohos.net.http';
 import { SongItemType } from "../models/music"
 import { ApiConfig } from '../config/ApiConfig'
+import { HttpClient } from '../utils/HttpClient'
 //歌手画像
 interface NetEaseArtist {
   name: string
@@ -37,36 +38,27 @@ interface NetEaseDataUrl {
 // --- 核心方法 1：根据确切关键词搜索歌曲 ---
 export async function searchMusic(keyword: string): Promise<SongItemType[]> {
   if (!keyword) return []
-  let httpRequest = http.createHttp()
   let safeKeyword = encodeURIComponent(keyword)
 
-  try {
-    let res = await httpRequest.request(
-      `${ApiConfig.MUSIC_API_BASE}/cloudsearch?keywords=${safeKeyword}`,
-      { method: http.RequestMethod.GET, connectTimeout: 10000 }
-    )
-    if (res.responseCode === 200) {
-      let rawObj = JSON.parse(res.result as string) as NetEaseResponse
-      if (rawObj.code === 200 && rawObj.result?.songs) {
-        let cleanSongs: SongItemType[] = rawObj.result.songs.map((rawItem) => {
-          return {
-            id: rawItem.id.toString(),
-            name: rawItem.name,
-            author: (rawItem.ar && rawItem.ar.length > 0) ? rawItem.ar[0].name : '未知歌手',
-            img: (rawItem.al?.picUrl || '').replace('http://', 'https://'),   //防止如果未返回专辑封面APP闪退问题
-            url: ''
-          } as SongItemType
-        })
-        return cleanSongs // 返回清洗后的纯净数据
-      }
-    }
-    return []
-  } catch (err) {
-    console.error('搜索请求异常：', JSON.stringify(err))
-    return []
-  } finally {
-    httpRequest.destroy()
+  let rawObj = await HttpClient.request(
+    `${ApiConfig.MUSIC_API_BASE}/cloudsearch?keywords=${safeKeyword}`,
+    http.RequestMethod.GET
+  ) as NetEaseResponse | null; // 因为拦截器可能返回 null，所以加上 | null
+
+  // 直接判断拿到的干净数据
+  if (rawObj && rawObj.code === 200 && rawObj.result?.songs) {
+    let cleanSongs: SongItemType[] = rawObj.result.songs.map((rawItem) => {
+      return {
+        id: rawItem.id.toString(),
+        name: rawItem.name,
+        author: (rawItem.ar && rawItem.ar.length > 0) ? rawItem.ar[0].name : '未知歌手',
+        img: (rawItem.al?.picUrl || '').replace('http://', 'https://'),
+        url: ''
+      } as SongItemType
+    })
+    return cleanSongs
   }
+  return [] // 如果 rawObj 是 null，直接返回空数组
 }
 
 
@@ -81,23 +73,16 @@ export async function getRandomMusic(authors: string[]): Promise<SongItemType[]>
 
 // --- 核心方法 3：获取真实的 MP3 音频播放链接 ---
 export async function getSongRealUrl(id: string): Promise<string> {
-  let httpRequest = http.createHttp()
-  try {
-    let res = await httpRequest.request(
-      `${ApiConfig.MUSIC_API_BASE}/song/url/v1?id=${id}&level=standard`,
-      { method: http.RequestMethod.GET }
-    )
-    if (res.responseCode === 200) {
-      let rawObj = JSON.parse(res.result as string) as NetEaseDataUrl
-      if (rawObj.code === 200 && rawObj.data && rawObj.data.length > 0) {
-        return rawObj.data[0].url as string
-      }
-    }
-  } catch (err) {
-    console.error("获取链接失败", JSON.stringify(err))
-  } finally {
-    httpRequest.destroy()
+  // 💥 核心重构：再次秒杀原来的冗余代码
+  let rawObj = await HttpClient.request(
+    `${ApiConfig.MUSIC_API_BASE}/song/url/v1?id=${id}&level=standard`,
+    http.RequestMethod.GET
+  ) as NetEaseDataUrl | null;
+
+  if (rawObj && rawObj.code === 200 && rawObj.data && rawObj.data.length > 0) {
+    return rawObj.data[0].url as string
   }
+
   return ''
 }
 
